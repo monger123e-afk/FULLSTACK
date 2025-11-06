@@ -1,0 +1,49 @@
+To implement protected API routes using JSON Web Token (JWT) verification in a Node.js
+Express application.
+
+
+
+user.js
+// models/User.js
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const UserSchema = new mongoose.Schema({
+ name: { type: String, required: true },
+Date of Performance: 28.08.25
+Section/Group: 602-A
+UID: 23BCS13402 Student Name: Atul
+ email: { type: String, required: true, unique: true, lowercase: true },
+ password: { type: String, required: true }
+});
+// Hash password before saving
+UserSchema.pre('save', async function(next) {
+ if (!this.isModified('password')) {
+ return next();
+ }
+ const salt = await bcrypt.genSalt(10);
+ this.password = await bcrypt.hash(this.password, salt);
+ next();
+});
+module.exports = mongoose.model('User', UserSchema);
+server.js
+// server.js
+const express = require('express');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+// Load environment variables
+dotenv.config();
+// Route imports
+const authRoutes = require('./routes/auth');
+const dashboardRoutes = require('./routes/dashboard');
+const app = express();
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI)
+ .then(() => console.log('Successfully connected to MongoDB'))
+ .catch(err => console.error('Connection error', err));
+// Middleware
+app.use(express.json()); // for parsing application/json
+// Route Middlewares
+app.use('/api/user', authRoutes);
+app.use('/api', dashboardRoutes); // Protected routes
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`))
