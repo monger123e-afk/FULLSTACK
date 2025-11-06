@@ -1,0 +1,55 @@
+To implement a student management system using MVC pattern with Node.js, Express, and
+MongoDB
+
+
+
+App.js
+// app.js
+const express = require('express');
+const mongoose = require('mongoose');
+const path = require('path');
+const dotenv = require('dotenv');
+Section/Group: 602-A
+UID: 23BCS13402 Student Name: Atul
+// Load environment variables
+dotenv.config();
+// Initialize express app
+const app = express();
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+}).then(() => {
+ console.log('MongoDB Connected...');
+}).catch(err => {
+ console.error('MongoDB connection error:', err.message);
+ process.exit(1); // Exit process with failure
+});
+// View Engine Setup
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+// Routes
+const studentRoutes = require('./routes/studentRoutes');
+app.use('/', studentRoutes);
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+ console.log(`Server is running on http://localhost:${PORT}`);
+});
+Student.js
+// models/Student.js
+const mongoose = require('mongoose');
+const studentSchema = new mongoose.Schema({
+name: {
+ type: String,
+ required: [true, 'Student name is required']
+},
+rollNo: {
+ type: String,
+ required: [true, 'Roll number is required'],
+ unique: true
+},
+grades: [{
+ subject: String,
+ score: Number
+}]
+}, { timestamps: true }); // timestamps adds createdAt and updatedAt fields
+module.exports = mongoose.model('Student', studentSchema);
