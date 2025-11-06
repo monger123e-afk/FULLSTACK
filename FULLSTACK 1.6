@@ -1,0 +1,87 @@
+To secure banking APIs using JWT (JSON Web Tokens) for authentication and authorization
+
+
+
+App.js
+// app.js
+const express = require('express');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+// --- Correction is here ---
+const authRoutes = require('./routes/authRoutes');
+Semester: 5th
+UID: 23BCS13402
+Date of Performance: 07.08.25
+Student Name: Atul
+const bankingRoutes = require('./routes/bankingRoutes');
+// --- End of Correction ---
+dotenv.config();
+const app = express();
+// Middleware
+app.use(express.json());
+// DB Connection
+mongoose.connect(process.env.MONGO_URI)
+ .then(() => console.log('MongoDB Connected...'))
+ .catch(err => console.error(err));
+// Mount Routers
+app.use('/api/auth', authRoutes);
+app.use('/api/banking', bankingRoutes);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+bankingController.js
+// controllers/bankingController.js
+const User = require("../models/User");
+// @desc Get current user's balance
+// @route GET /api/banking/balance
+// @access Private
+exports.getBalance = async (req, res) => {
+ try {
+ // The user's ID is attached to the request by the auth middleware
+ const user = await User.findById(req.userId).select('-password'); // Exclude password
+from result
+ if (!user) {
+ return res.status(404).json({ error: 'User not found' });
+ }
+ res.status(200).json({ balance: user.balance });
+ } catch (err) {
+ res.status(500).json({ error: err.message });
+ 
+}
+};
+// @desc Transfer funds to another user
+// @route POST /api/banking/transfer
+// @access Private
+exports.transfer = async (req, res) => {
+ const { recipientEmail, amount } = req.body;
+ if (!recipientEmail || !amount) {
+ return res.status(400).json({ error: 'Please provide recipient email and amount' });
+ }
+ if (amount <= 0) {
+ return res.status(400).json({ error: 'Transfer amount must be positive' });
+ }
+ try {
+ // Find sender and recipient
+ const sender = await User.findById(req.userId);
+ const recipient = await User.findOne({ email: recipientEmail });
+ if (!recipient) {
+ return res.status(404).json({ error: 'Recipient not found' });
+ }
+ if (sender.email === recipientEmail) {
+ return res.status(400).json({ error: 'Cannot transfer money to yourself' });
+ }
+ // Check for sufficient funds
+ if (sender.balance < amount) {
+ return res.status(400).json({ error: 'Insufficient funds' });
+ }
+ // Perform the transfer
+ sender.balance -= amount;
+ recipient.balance += amount;
+ // Save both documents
+ await sender.save();
+ await recipient.save();
+ 
+res.status(200).json({ message: 'Transfer successful', newBalance: sender.balance });
+ } catch (err) {
+ res.status(500).json({ error: err.message });
+ }
+};
