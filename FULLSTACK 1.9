@@ -1,0 +1,87 @@
+To implement Continuous Integration and Continuous Deployment (CI/CD) using GitHub
+Actions for a full stack project
+
+
+
+
+server.js
+// server.js
+const express = require('express');
+const app = express();
+// Heroku provides the PORT environment variable
+const PORT = process.env.PORT || 3000;
+Section/Group: 602-A
+UID: 23BCS13402 Student Name: Atul
+app.get('/', (req, res) => {
+ res.status(200).send('Welcome to the CI/CD Project!');
+});
+app.get('/api/data', (req, res) => {
+ res.status(200).json({ message: 'This is some sample API data.' });
+});
+// We only want to start the server if this file is run directly
+// This prevents it from starting during tests
+if (require.main === module) {
+ app.listen(PORT, () => {
+ console.log(`Server is running on http://localhost:${PORT}`);
+ });
+}
+module.exports = app; // Export for testing
+Github steps
+git init
+git add .
+git commit -m "Initial commit: setting up project for CI/CD"
+git branch -M main
+git remote add origin https://github.com/your-username/cicd-project.git
+git push -u origin main
+main.yml
+# .github/workflows/main.yml
+name: Node.js CI/CD Pipeline
+# This workflow runs on any push to the 'main' branch
+on:
+ push:
+ branches: [ "main" ]
+ pull_request:
+ branches: [ "main" ]
+jobs:
+ # The 'build-and-test' job
+ build-and-test:
+ # The type of runner that the job will run on
+ 
+runs-on: ubuntu-latest
+ # Steps represent a sequence of tasks that will be executed as part of the job
+ steps:
+ # Step 1: Checks-out your repository under $GITHUB_WORKSPACE, so your job can
+access it
+ - name: Checkout code
+ uses: actions/checkout@v3
+ # Step 2: Sets up a specific version of Node.js
+ - name: Setup Node.js
+ uses: actions/setup-node@v3
+ with:
+ node-version: '18'
+ cache: 'npm' # Optional: Caches npm dependencies for faster builds
+ # Step 3: Installs project dependencies
+ - name: Install dependencies
+ run: npm install
+ 
+# Step 4: Runs tests to ensure code is working correctly
+ - name: Run tests
+ run: npm test
+ # The 'deploy' job, which depends on the 'build-and-test' job
+ deploy:
+ # This job will only run if the 'build-and-test' job completes successfully
+ needs: build-and-test
+ runs-on: ubuntu-latest
+ steps:
+ # Step 1: Checks out the code again for the deployment environment
+ - name: Checkout code
+ uses: actions/checkout@v3
+ # Step 2: The actual deployment step using a pre-made GitHub Action
+ - name: Deploy to Heroku
+ uses: akhileshns/heroku-deploy@v3.12.12
+ with:
+ # These values are securely fetched from the GitHub repository secrets
+ 
+ heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+ heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+ heroku_email: ${{ secrets.HEROKU_EMAIL }}
