@@ -1,0 +1,62 @@
+To implement Redux for managing state in a React-based shopping cart application.
+
+
+
+App.js
+import React from 'react';
+import ProductList from './components/ProductList';
+import ShoppingCart from './components/ShoppingCart';
+import './App.css';
+function App() {
+return (
+Section/Group: 602-A
+UID: 23BCS13402 Student Name: Atul
+ <div className="app-container">
+ <header className="app-header">
+ <h1>Redux Shopping Cart</h1>
+ </header>
+ <main className="main-content">
+ <ProductList />
+ <ShoppingCart />
+ </main>
+ </div>
+);
+}
+export default App;
+index.js
+// src/index.js
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
+import { store } from './app/store'; // Import our configured store
+import App from './App';
+import './index.css'; // You can remove the default index.css if you want
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+<React.StrictMode>
+ <Provider store={store}>
+ <App />
+ </Provider>
+</React.StrictMode>
+);
+app/store.js
+// src/app/store.js
+import { configureStore } from '@reduxjs/toolkit';
+import cartReducer from '../features/cart/cartSlice';
+// A simple middleware to save the cart state to localStorage
+const localStorageMiddleware = store => next => action => {
+const result = next(action);
+// We only want to save state if an action related to the cart was dispatched
+if (action.type?.startsWith('cart/')) {
+ const cartState = store.getState().cart;
+ localStorage.setItem('cart', JSON.stringify(cartState));
+}
+return result;
+};
+export const store = configureStore({
+reducer: {
+ cart: cartReducer,
+},
+// Add our custom middleware to the store
+middleware: (getDefaultMiddleware) =>
+ getDefaultMiddleware().concat(localStorageMiddleware), });
